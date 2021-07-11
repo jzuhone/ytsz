@@ -26,23 +26,19 @@ from yt.utilities.physical_constants import \
 from yt.testing import requires_module, assert_almost_equal
 from yt.utilities.answer_testing.framework import requires_ds, \
     GenericArrayTest, data_dir_load, GenericImageTest
-try:
-    from yt_astro_analysis.sunyaev_zeldovich.projection import SZProjection, I0
-except ImportError:
-    pass
+from ytsz.projection import SZProjection, I0
 import numpy as np
-try:
-    import SZpack
-except ImportError:
-    pass
+from ytsz.cszpack import compute_3d
 
 mue = 1./0.88
 freqs = np.array([30., 90., 240.])
+
 
 def setup():
     """Test specific setup."""
     from yt.config import ytcfg
     ytcfg["yt", "__withintesting"] = "True"
+
 
 def full_szpack3d(ds, xo):
     data = ds.index.grids[0]
@@ -57,11 +53,12 @@ def full_szpack3d(ds, xo):
         pbar.update(i)
         for j in range(ny):
             for k in range(nz):
-                dn[i,j,k] = SZpack.compute_3d(xo, Dtau[i,j,k],
-                                              Te[i,j,k], betac[i,j,k],
-                                              1.0, 0.0, 0.0, 1.0e-5)
+                dn[i,j,k] = compute_3d(xo, Dtau[i, j, k],
+                                       Te[i,j,k], betac[i,j,k],
+                                       1.0, 0.0, 0.0, 1.0e-5)
     pbar.finish()
     return np.array(I0*xo**3*np.sum(dn, axis=2))
+
 
 def setup_cluster():
 
@@ -83,7 +80,6 @@ def setup_cluster():
 
     r = np.sqrt(x**2+y**2+z**2)
 
-    dens = np.zeros(ddims)
     dens = rho_c*(1.+(r/r_c)**2)**(-1.5*beta)
     temp = T0*K_per_keV/(1.+r/a)*(c+r/a_c)/(1.+r/a_c)
     velz = v0*temp/(T0*K_per_keV)
@@ -103,6 +99,7 @@ def setup_cluster():
 
     return ds
 
+
 @requires_module("SZpack")
 def test_projection():
     ds = setup_cluster()
@@ -115,6 +112,7 @@ def test_projection():
         deltaI[i,:,:] = full_szpack3d(ds, xinit[i])
         assert_almost_equal(
             deltaI[i,:,:], np.array(szprj["%d_GHz" % int(freqs[i])]), 6)
+
 
 M7 = "DD0010/moving7_0010"
 @requires_module("SZpack")
@@ -131,6 +129,7 @@ def test_M7_onaxis():
                  GenericImageTest(ds, onaxis_image_func, 12)]:
         test_M7_onaxis.__name__ = test.description
         yield test
+
 
 @requires_module("SZpack")
 @requires_ds(M7)

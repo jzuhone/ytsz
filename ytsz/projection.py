@@ -10,22 +10,14 @@ Chluba, Nagai, Sazonov, Nelson, MNRAS, 2012, arXiv:1205.5778
 Chluba, Switzer, Nagai, Nelson, MNRAS, 2012, arXiv:1211.3206
 """
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, yt Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-from yt.utilities.physical_constants import clight, hcgs, kboltz, Tcmb
 from yt.funcs import fix_axis
 from yt.visualization.volume_rendering.off_axis_projection import \
     off_axis_projection
-from yt.units import steradian
-from yt.utilities.on_demand_imports import _astropy
-
+from yt.units import steradian, clight, hcgs, kboltz, Tcmb
+from astropy import wcs
 import numpy as np
+from ytsz.cszpack import compute_combo_means_map
+
 
 I0 = (2*(kboltz*Tcmb)**3/((hcgs*clight)**2)/steradian).in_units("MJy/steradian")
 
@@ -69,7 +61,7 @@ def generate_beta_par(L, ftype):
     return _beta_par
 
 
-class SZImage(object):
+class SZImage:
 
     def __init__(self, data, nx, bounds):
         self.nx = nx
@@ -109,59 +101,23 @@ class SZImage(object):
         >>> sky_center = (30., 45., "deg")
         >>> szimg.write_fits("SZbullet.fits", sky_center=sky_center, sky_scale=sky_scale)
         """
-        from yt.visualization.fits_image import FITSImageData
 
         dx = self.dx.in_units("kpc")
 
-        w = _astropy.pywcs.WCS(naxis=2)
+        w = wcs.WCS(naxis=2)
         w.wcs.crpix = [0.5*(self.nx+1)]*2
         w.wcs.cdelt = [dx.v]*2
         w.wcs.crval = [0.0]*2
         w.wcs.cunit = ["kpc"]*2
         w.wcs.ctype = ["LINEAR"]*2
 
-        fib = FITSImageData(self.data, fields=list(self.data.keys()), wcs=w)
+        fib = yt.FITSImageData(self.data, fields=list(self.data.keys()), wcs=w)
         if sky_scale is not None and sky_center is not None:
             fib.create_sky_wcs(sky_center, sky_scale)
         fib.writeto(filename, overwrite=overwrite, **kwargs)
 
-    def write_hdf5(self, filename):
-        r"""Export the set of S-Z fields to a set of HDF5 datasets.
 
-        Parameters
-        ----------
-        filename : string
-            This file will be opened in "write" mode.
-
-        Examples
-        --------
-        >>> szimg.write_hdf5("SZsloshing.h5")
-        """
-        import h5py
-        for field, data in self.items():
-            data.write_hdf5(filename, dataset_name=field)
-        f = h5py.File(filename, "r+")
-        f.flush()
-        f.close()
-
-    def keys(self):
-        return self.data.keys()
-
-    def items(self):
-        return self.data.items()
-
-    def values(self):
-        return self.data.values()
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    @property
-    def shape(self):
-        return self.nx, self.nx
-
-
-class SZProjection(object):
+class SZProjection:
     r""" Initialize a SZProjection object.
 
     Parameters
@@ -386,22 +342,18 @@ class SZProjection(object):
         return SZImage(data, nx, bounds)
 
     def _compute_intensity(self, tau, Te, bpar, omega1, sigma1, kappa1, bperp2):
-        try:
-            import SZpack
-        except ImportError:
-            raise ImportError("Could not import SZpack's Python bindings! Check your install!")
 
         # Bad hack, but we get NaNs if we don't do something like this
         small_beta = np.abs(bpar) < 1.0e-20
         bpar[small_beta] = 1.0e-20
 
-        signal = SZpack.compute_combo_means_map(self.xinit, np.asarray(tau, order="C"),
-                                                np.asarray(Te, order="C"),
-                                                np.asarray(bpar, order="C"),
-                                                np.asarray(omega1, order="C"),
-                                                np.asarray(sigma1, order="C"),
-                                                np.asarray(kappa1, order="C"),
-                                                np.asarray(bperp2, order="C"))
+        signal = compute_combo_means_map(self.xinit, np.asarray(tau, order="C"),
+                                         np.asarray(Te, order="C"),
+                                         np.asarray(bpar, order="C"),
+                                         np.asarray(omega1, order="C"),
+                                         np.asarray(sigma1, order="C"),
+                                         np.asarray(kappa1, order="C"),
+                                         np.asarray(bperp2, order="C"))
 
         data = {}
 
