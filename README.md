@@ -21,16 +21,18 @@ partial integration of the signal for each cell in the projection
 would be prohibitively expensive, we use the method outlined in
 [Chluba et al 2013](http://adsabs.harvard.edu/abs/2013MNRAS.430.3054C) to 
 expand the total S-Z signal in terms of moments of the projected optical 
-depth ![tau](images/tau.png), projected electron temperature $T_e$, and
-velocities $\beta_{c,\parallel}$ and $\beta_{c,\perp}$ (their equation 18):
+depth ![tau](images/tau.png), projected electron temperature 
+![Te](images/te.png), and velocities ![beta_par](images/beta_par.png) and 
+![beta_perp](images/beta_perp.png) (their equation 18):
 
 ![expansion](images/expansion.png)
 
 `ytSZ` makes projections of the various moments needed for the
 calculation, and then the resulting projected fields are used to
 compute the S-Z signal. In our implementation, the expansion is carried out 
-to first-order terms in $T_e$ and zeroth-order terms in $\beta_{c,\parallel}$ 
-by default, but terms up to second-order in can be optionally included.
+to first-order terms in ![Te](images/te.png) and zeroth-order terms in
+![beta_par](images/beta_par.png) by default, but terms at higher-order can 
+be optionally included.
 
 ## Installing
 
