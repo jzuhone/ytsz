@@ -47,12 +47,15 @@ find the SZpack library. This can be done if you have compiled SZpack in
 location of the `SZpack.v1.1.1` directory before executing `pip`. Then, 
 
 ```bash
+# Optionally set location of the SZpack installation
+export SZPACK=$HOME/mylibs/SZpack.v1.1.1
 python -m pip install ytsz
 ```
 
 Or you can clone the source and install from there:
 
 ```bash
+# This case assumes that SZpack is installed in $HOME/SZpack.v1.1.1
 git clone https://github.com/jzuhone/ytsz
 cd ytsz
 python -m pip install . 
