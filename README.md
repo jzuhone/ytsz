@@ -38,5 +38,27 @@ be optionally included.
 
 First, install SZpack by downloading version 1.1.1 
 [here](https://www.cita.utoronto.ca/~jchluba/SZpack/_Downloads_/SZpack.v1.1.1.tar.gz).
-SZpack depends on GSL. 
+SZpack depends on [GSL](https://www.gnu.org/software/gsl/), which should 
+be installed such that the `gsl-config` executable is in your path. 
+
+Then, `ytsz` can be installed using `pip`, but `pip` needs to know where to
+find the SZpack library. This can be done if you have compiled SZpack in 
+`$HOME/SZpack.v1.1.1`, or if you set the environment variable `SZPACK` to the 
+location of the `SZpack.v1.1.1` directory before executing `pip`. Then, 
+
+```bash
+python -m pip install ytsz
+```
+
+Or you can clone the source and install from there:
+
+```bash
+git clone https://github.com/jzuhone/ytsz
+cd ytsz
+python -m pip install . 
+```
+
+## Examples
+
+
 
