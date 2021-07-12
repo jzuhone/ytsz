@@ -13,6 +13,7 @@ Chluba, Switzer, Nagai, Nelson, MNRAS, 2012, arXiv:1211.3206
 from yt.funcs import fix_axis
 from yt.visualization.volume_rendering.off_axis_projection import \
     off_axis_projection
+from yt.visualization.fits_image import FITSImageData
 from yt.units import steradian, clight, hcgs, kboltz, Tcmb
 from astropy import wcs
 import numpy as np
@@ -111,7 +112,7 @@ class SZImage:
         w.wcs.cunit = ["kpc"]*2
         w.wcs.ctype = ["LINEAR"]*2
 
-        fib = yt.FITSImageData(self.data, fields=list(self.data.keys()), wcs=w)
+        fib = FITSImageData(self.data, fields=list(self.data.keys()), wcs=w)
         if sky_scale is not None and sky_center is not None:
             fib.create_sky_wcs(sky_center, sky_scale)
         fib.writeto(filename, overwrite=overwrite, **kwargs)
