@@ -21,7 +21,7 @@ would be prohibitively expensive, we use the method outlined in
 total S-Z signal in terms of moments of the projected optical depth $\tau$, projected electron temperature $T_e$, and
 velocities $\beta_{c,\parallel}$ and $\beta_{c,\perp}$ (their equation 18):
 
-$$S(\tau, T_{e},\beta_{c,\parallel},\beta_{\rm c,\perp}) \approx S_{\rm iso}^{(0)} + S_{\rm iso}^{(2)}\omega^{(1)} + C_{\rm iso}^{(1)}\sigma^{(1)} + D_{\rm iso}^{(2)}\kappa^{(1)} + E_{\rm iso}^{(2)}\beta_{\rm c,\perp,SZ}^2 +~...$$
+![expansion](expansion.png)
 
 ## Installing
 
