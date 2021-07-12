@@ -62,62 +62,6 @@ def generate_beta_par(L, ftype):
     return _beta_par
 
 
-class SZImage:
-
-    def __init__(self, data, nx, bounds):
-        self.nx = nx
-        self.bounds = bounds
-        self.data = data
-        self.dx = (bounds[1]-bounds[0])/nx
-
-    def write_fits(self, filename, sky_scale=None, sky_center=None, overwrite=True,
-                   **kwargs):
-        r""" Export images to a FITS file. Writes the SZ distortion in all
-        specified frequencies as well as the mass-weighted temperature and the
-        optical depth. Distance units are in kpc, unless *sky_center*
-        and *scale* are specified.
-
-        Parameters
-        ----------
-        filename : string
-            The name of the FITS file to be written.
-        sky_scale : tuple
-            Conversion between an angle unit and a length unit, if sky
-            coordinates are desired, e.g. (1.0, "arcsec/kpc")
-        sky_center : tuple, optional
-            The (RA, Dec) coordinate in degrees of the central pixel. Must
-            be specified with *sky_scale*.
-        overwrite : boolean, optional
-            If the file already exists, do we overwrite?
-
-        Additional keyword arguments are passed to
-        :meth:`~astropy.io.fits.HDUList.writeto`.
-
-        Examples
-        --------
-        >>> # This example just writes out a FITS file with kpc coords
-        >>> szimg.write_fits("SZbullet.fits", overwrite=False)
-        >>> # This example uses sky coords
-        >>> sky_scale = (1., "arcsec/kpc") # One arcsec per kpc
-        >>> sky_center = (30., 45., "deg")
-        >>> szimg.write_fits("SZbullet.fits", sky_center=sky_center, sky_scale=sky_scale)
-        """
-
-        dx = self.dx.in_units("kpc")
-
-        w = wcs.WCS(naxis=2)
-        w.wcs.crpix = [0.5*(self.nx+1)]*2
-        w.wcs.cdelt = [dx.v]*2
-        w.wcs.crval = [0.0]*2
-        w.wcs.cunit = ["kpc"]*2
-        w.wcs.ctype = ["LINEAR"]*2
-
-        fib = FITSImageData(self.data, fields=list(self.data.keys()), wcs=w)
-        if sky_scale is not None and sky_center is not None:
-            fib.create_sky_wcs(sky_center, sky_scale)
-        fib.writeto(filename, overwrite=overwrite, **kwargs)
-
-
 class SZProjection:
     r""" Initialize a SZProjection object.
 
@@ -150,6 +94,16 @@ class SZProjection:
         self.freqs = ds.arr(freqs, "GHz")
         self.xinit = hcgs*self.freqs.in_units("Hz")/(kboltz*Tcmb)
         self.freq_fields = ["%d_GHz" % (int(freq)) for freq in freqs]
+
+    def _make_image_data(self, data, nx, bounds):
+        dx = (bounds[1]-bounds[0]).to_value("kpc")/nx
+        w = wcs.WCS(naxis=2)
+        w.wcs.crpix = [0.5*(self.nx+1)]*2
+        w.wcs.cdelt = [dx]*2
+        w.wcs.crval = [0.0]*2
+        w.wcs.cunit = ["kpc"]*2
+        w.wcs.ctype = ["LINEAR"]*2
+        return FITSImageData(data, fields=list(data.keys()), wcs=w)
 
     def on_axis(self, axis, center="c", width=(1, "unitary"), nx=800, source=None):
         r""" Make an on-axis projection of the SZ signal.
@@ -235,7 +189,7 @@ class SZProjection:
 
         self.ds.field_info.pop(("gas", "beta_par"))
 
-        return SZImage(data, nx, bounds)
+        return self._make_image_data(data, nx, bounds)
 
     def off_axis(self, L, center="c", width=(1.0, "unitary"), depth=(1.0,"unitary"),
                  nx=800, north_vector=None, source=None):
@@ -340,7 +294,7 @@ class SZProjection:
 
         self.ds.field_info.pop((self.ftype, "beta_par"))
 
-        return SZImage(data, nx, bounds)
+        return self._make_image_data(data, nx, bounds)
 
     def _compute_intensity(self, tau, Te, bpar, omega1, sigma1, kappa1, bperp2):
 

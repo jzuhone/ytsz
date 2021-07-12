@@ -1,1 +1,1 @@
-from .projection import SZProjection, SZImage
+from .projection import SZProjection
