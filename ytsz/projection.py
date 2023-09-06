@@ -18,7 +18,7 @@ from yt.units import steradian, clight, hcgs, kboltz, Tcmb
 from astropy import wcs
 import numpy as np
 from ytsz.cszpack import compute_combo_means_map
-
+from yt.utilities.exceptions import YTFieldNotFound
 
 I0 = (2*(kboltz*Tcmb)**3/((hcgs*clight)**2)/steradian).in_units("MJy/steradian")
 
@@ -85,6 +85,14 @@ class SZProjection:
         self.ds = ds
         self.num_freqs = len(freqs)
         self.ftype = ftype
+        try:
+            ds._get_field_info((ftype, "optical_depth"))
+        except YTFieldNotFound:
+            raise RuntimeError(f"The {self.emission_measure_field} field is not "
+                               "found. If you do not have species fields in "
+                               "your dataset, you may need to set "
+                               "default_species_fields='ionized' in the call "
+                               "to yt.load().")
         if no_kinetic:
             self.high_order = False
         else:
